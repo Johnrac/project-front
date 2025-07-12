@@ -1,11 +1,106 @@
-<html>
+<!DOCTYPE html>
+<html lang="ru_RU">
 <head>
     <title>RPG</title>
     <script src=https://code.jquery.com/jquery-3.6.0.min.js></script>
-    <link href="/css/my.css" rel="stylesheet">
+    <script src="/js/script.js"></script>
+    <link rel="stylesheet" href="/css/my.css">
 </head>
+
 <body>
 <h1>RPG admin panel</h1>
 
+<h2>Accounts list:</h2>
+
+<label for="counter">Count per page:</label>
+<select id="counter" onchange="showList()">
+    <option value="3">3</option>
+    <option value="5">5</option>
+    <option value="10">10</option>
+    <option value="20">20</option>
+</select>
+<table id="players">
+    <thead>
+    <tr>
+        <th>#</th>
+        <th>Name</th>
+        <th>Title</th>
+        <th>Race</th>
+        <th>Profession</th>
+        <th>Level</th>
+        <th>Birthday</th>
+        <th>Banned</th>
+        <th>Edit</th>
+        <th>Delete</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    </tbody>
+</table>
+
+<div id="paging" class="clickable">
+    Pages:
+</div>
+<hr>
+<div class="create">
+    <h1>Create new account</h1>
+
+    <div class="field">
+        <label for="name">Name:</label>
+        <input type="text" id="name"/>
+    </div>
+
+    <br>
+    <div class="field">
+        <label for="title">Title:</label>
+        <input type="text" id="title"/>
+    </div>
+
+    <br>
+    <div class="field">
+        <label>Race:
+            <select>
+                <option value="HUMAN" selected> HUMAN</option>
+                <option value="ORC">ORC</option>
+                <option value="DWARF">DWARF</option>
+                <option value="ELF">ELF</option>
+                <option value="GIANT">GIANT</option>
+                <option value="TROLL">TROLL</option>
+                <option value="HOBBIT">HOBBIT</option>
+            </select>
+        </label>
+    </div>
+
+    <br>
+    <div class="field">
+        <label>Profession:
+            <select>
+                <option value="WARRIOR" selected> WARRIOR</option>
+                <option value="ROGUE">ROGUE</option>
+                <option value="SORCERER">SORCERER</option>
+                <option value="CLERIC">CLERIC</option>
+                <option value="PALADIN">PALADIN</option>
+                <option value="NAZGUL">NAZGUL</option>
+                <option value="WARLOCK">WARLOCK</option>
+                <option value="DRUID">DRUID</option>
+            </select>
+        </label>
+    </div>
+
+    <br>
+    <div class="field">
+        <label for="level">Level:</label>
+        <input type="text" id="level"/>
+    </div>
+
+    <br>
+    <div class="field">
+        <label for="birthday">Birthday:</label>
+        <input type="date" id="birthday"/>
+    </div>
+
+    <br>
+    <img src="/img/save.png" alt="save">
+</div>
 </body>
-</html>

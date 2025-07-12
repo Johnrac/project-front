@@ -1,0 +1,33 @@
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+
+#paging .inactive {
+    background-color: -moz-default-background-color;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+#paging .active {
+    background-color: aqua;
+}
+
+.hidden {
+    display: none;
+}
+
+.create {
+    width: 300px;
+}
+
+
+/*.create input,.create select {*/
+/*    width: 70%;*/
+/*}*/
+
+.create img,.create input,.create select {
+    float: right;
+}
