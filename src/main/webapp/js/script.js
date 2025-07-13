@@ -12,19 +12,20 @@ function showList() {
     let currentPage = parseInt($("#paging .active")[0].innerText);
 
     $.get("/rest/players", {
-        "pageNumber": "" + currentPage - 1,
+        "pageNumber": "" + (currentPage - 1),
         "pageSize": "" + counter
     }, (data) => getPlayers(data));
 }
 
 function showCountPages(countPerPage) {
     const paging = $("#paging");
-    let activePage = $("#paging .active").text();
-    if (activePage === "" || activePage > countPerPage) {
+    let activePage = parseInt($("#paging .active").text());
+    if (isNaN(activePage) || activePage > countPerPage) {
         activePage = 0;
     } else {
-        activePage = parseInt(activePage) - 1;
+        activePage = activePage - 1;
     }
+
     paging.empty();
     paging.text("Pages:")
     for (let i = 0; i < countPerPage; i++) {
@@ -80,10 +81,9 @@ function getPlayers(data) {
 
                 let parentTd = $(this).parent();
                 parentTd.empty();
-                createSaveButton(parentTd, player,row);
+                createSaveButton(parentTd, player, row);
 
                 showEditFields(player, row);
-
             });
         $("<td></td>").append(imgEdit).appendTo(row);
 
@@ -95,7 +95,7 @@ function getPlayers(data) {
     });
 }
 
-function createSaveButton(td,player,row) {
+function createSaveButton(td, player, row) {
     let imgSave = $("<img src=\"/img/save.png\" class=\"clickable\" alt=\"save\">");
     imgSave.on('click', () => {
 
@@ -113,8 +113,6 @@ function createSaveButton(td,player,row) {
             profession: profession,
             banned: banned,
         };
-
-        // showList();
 
         $.ajax({
             url: "/rest/players/" + player.id,
@@ -165,11 +163,93 @@ function showEditFields(player, row) {
      </select>`);
 }
 
+function createPlayer() {
+    const name = $("#name").val();
+    const title = $("#title").val();
+    const race = $("#race").val();
+    const profession = $("#profession").val();
+    const level = $("#level").val();
+    const birthday = $("#birthday").val();
+    const banned = $("#banned").val();
+
+    const createdPlayer = {
+        name: name,
+        title: title,
+        race: race,
+        profession: profession,
+        birthday: birthday,
+        banned: banned,
+        level: level
+    };
+
+    if (isGoodPlayer(createdPlayer)) {
+        createdPlayer.birthday = Date.parse(createdPlayer.birthday)
+        $.ajax({
+            url: "/rest/players",
+            method: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(createdPlayer),
+            async: false,
+            success: () => {
+                clearAllFields();
+                showList();
+                setTimeout(function() {
+                    $("#paging button").last().click();
+                }, 30);
+            },
+            error: (error) => {
+                alert("Server responded with a status of " + error.status)
+            }
+        });
+    }
+}
+
+function clearAllFields()  {
+    $("#name").val('');
+    $("#title").val('');
+    $("#race").val('HUMAN');
+    $("#profession").val('WARRIOR');
+    $("#level").val('');
+    $("#birthday").val('');
+    $("#banned").val('false');
+}
+
+function isGoodPlayer(player) {
+
+    if (isEmpty(player.name) || isEmpty(player.title)
+        || isEmpty(player.level) || isEmpty(player.birthday)) {
+        alert("Fields name, title, level and birthday not should be empty");
+        return false;
+    }
+
+    if (player.name.length > 12 || player.title.length > 30) {
+        alert("Fields name should be less 12 and title less 30")
+        return false;
+    }
+
+    if (player.level < 0 || player.level > 100) {
+        alert("Field level should be from 0 to 100")
+        return false;
+    }
+    let birthday = new Date(player.birthday);
+    let year = birthday.getFullYear();
+    if (year < 2000 || year > 3000) {
+        alert("Birthday should be from 2000 to 3000 year")
+        return false;
+    }
+    return true;
+}
+
+function isEmpty(str) {
+    str = "" + str;
+    return !str || str.trim() === "";
+}
+
 function deletePlayer(id) {
     $.ajax({
         method: "DELETE",
         url: "/rest/players/" + id,
-        success: function (result) {
+        success: function () {
             showList();
         }
     });

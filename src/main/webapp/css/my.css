@@ -3,6 +3,15 @@ table, th, td {
     border-collapse: collapse;
 }
 
+td {
+    padding: 10px;
+    text-align: center;
+}
+
+button:hover {
+    background-color: chocolate;
+}
+
 #paging .inactive {
     background-color: -moz-default-background-color;
 }
@@ -23,11 +32,19 @@ table, th, td {
     width: 300px;
 }
 
+.create select, .create input {
+    width: 59%;
+    box-sizing: border-box;
+}
 
-/*.create input,.create select {*/
-/*    width: 70%;*/
-/*}*/
-
-.create img,.create input,.create select {
+.rightable {
     float: right;
+    margin-right: 35px;
+}
+
+button.icon-only {
+    border: none;
+    background: none;
+    padding: 0;
+    cursor: pointer;
 }
