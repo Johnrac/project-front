@@ -9,7 +9,7 @@ function showList() {
     let counter = $("#counter").val();
     let countPerPage = Math.ceil(countPlayers / counter);
     showCountPages(countPerPage);
-    let currentPage = parseInt($("#paging .active")[0].innerText);
+    let currentPage = parseInt($("#paging .active").text());
 
     $.get("/rest/players", {
         "pageNumber": "" + (currentPage - 1),
@@ -18,33 +18,47 @@ function showList() {
 }
 
 function showCountPages(countPerPage) {
-    const paging = $("#paging");
+    const container_paging = $("#paging");
+    let activePage = getNumberActivePage(countPerPage);
+
+    container_paging.empty();
+    container_paging.text("Pages:")
+    for (let i = 0; i < countPerPage; i++) {
+        addButtonPage(activePage, i, container_paging);
+    }
+}
+
+function addButtonPage(activePage, indexButton, container) {
+    let newButton = $("<button class=\"clickable\"></button>");
+    newButton.text(indexButton + 1);
+    addActionButtonPage(newButton);
+
+    if (indexButton === activePage) {
+        newButton.addClass("active");
+    } else {
+        newButton.addClass("inactive");
+    }
+    newButton.appendTo(container);
+}
+
+function addActionButtonPage(buttonPage) {
+    buttonPage.on('click', function () {
+        $("#paging button")
+            .removeClass("active")
+            .addClass("inactive");
+        $(this).removeClass("inactive").addClass("active");
+        showList();
+    });
+}
+
+function getNumberActivePage(countPerPage) {
     let activePage = parseInt($("#paging .active").text());
     if (isNaN(activePage) || activePage > countPerPage) {
         activePage = 0;
     } else {
         activePage = activePage - 1;
     }
-
-    paging.empty();
-    paging.text("Pages:")
-    for (let i = 0; i < countPerPage; i++) {
-        let newButton = $("<button class=\"clickable\"></button>");
-        newButton.text(i + 1);
-        newButton.on('click', function () {
-            $("#paging button")
-                .removeClass("active")
-                .addClass("inactive");
-            $(this).removeClass("inactive").addClass("active");
-            showList();
-        });
-        if (i === activePage) {
-            newButton.addClass("active");
-        } else {
-            newButton.addClass("inactive");
-        }
-        newButton.appendTo(paging);
-    }
+    return activePage;
 }
 
 function getTotalCountPlayers() {
@@ -65,78 +79,111 @@ function getPlayers(data) {
 
     data.forEach((player) => {
         let row = $("<tr></tr>");
-        $("<td class='id'></td>").text(player.id).appendTo(row);
-        $("<td class='name'></td>").text(player.name).appendTo(row);
-        $("<td class='title'></td>").text(player.title).appendTo(row);
-        $("<td class='race'></td>").text(player.race).appendTo(row);
-        $("<td class='profession'></td>").text(player.profession).appendTo(row);
-        $("<td class='level'></td>").text(player.level).appendTo(row);
-        $("<td class='birthday'></td>").text(new Date(player.birthday).toLocaleDateString("en-US")).appendTo(row);
-        $("<td class='banned'></td>").text(player.banned).appendTo(row);
-
-        let imgEdit = $("<img src=\"/img/edit.png\" class=\"clickable\" alt=\"edit\">")
-            .click(function () {
-                let deleteImg = row.find("img[alt=\"delete\"]");
-                deleteImg.addClass("hidden");
-
-                let parentTd = $(this).parent();
-                parentTd.empty();
-                createSaveButton(parentTd, player, row);
-
-                showEditFields(player, row);
-            });
-        $("<td></td>").append(imgEdit).appendTo(row);
-
-        let imgDelete = $("<img src=\"/img/delete.png\" class=\"clickable\" alt=\"delete\">")
-            .click(() => deletePlayer(player.id));
-        $("<td></td>").append(imgDelete).appendTo(row);
+        addCells(player, row);
+        addButtonEdit(player, row);
+        addButtonDelete(player, row);
 
         tbody.append(row);
     });
 }
 
+function addButtonDelete(player, row) {
+    let imgDelete = $("<img src=\"/img/delete.png\" class=\"clickable\" alt=\"delete\">")
+        .click(() => deletePlayer(player.id));
+    $("<td></td>").append(imgDelete).appendTo(row);
+}
+
+function addButtonEdit(player, row) {
+    let imgEdit = $("<img src=\"/img/edit.png\" class=\"clickable\" alt=\"edit\">");
+
+    addActionEdit(imgEdit, row, player);
+
+    $("<td></td>").append(imgEdit).appendTo(row);
+}
+
+function addActionEdit(img, row, player) {
+    img.click(function () {
+        hideButtonDelete(row);
+
+        let parentTd = $(this).parent();
+        parentTd.empty();
+        createSaveButton(parentTd, player, row);
+
+        showEditFields(player, row);
+    });
+}
+
+function hideButtonDelete(row) {
+    let deleteImg = row.find("img[alt=\"delete\"]");
+    deleteImg.addClass("hidden");
+}
+
+function addCells(player, row) {
+    $("<td class='id'></td>").text(player.id).appendTo(row);
+    $("<td class='name'></td>").text(player.name).appendTo(row);
+    $("<td class='title'></td>").text(player.title).appendTo(row);
+    $("<td class='race'></td>").text(player.race).appendTo(row);
+    $("<td class='profession'></td>").text(player.profession).appendTo(row);
+    $("<td class='level'></td>").text(player.level).appendTo(row);
+    $("<td class='birthday'></td>").text(new Date(player.birthday).toLocaleDateString("en-US")).appendTo(row);
+    $("<td class='banned'></td>").text(player.banned).appendTo(row);
+}
+
 function createSaveButton(td, player, row) {
     let imgSave = $("<img src=\"/img/save.png\" class=\"clickable\" alt=\"save\">");
-    imgSave.on('click', () => {
 
-        const name = row.find('td.name input').val();
-        const title = row.find('td.title input').val();
-        const race = row.find('td.race select').val();
-        const profession = row.find('td.profession select').val();
-        const banned = row.find('td.banned select').val();
+    addActionSaveOnRow(imgSave, row, player);
 
-        const updatedPlayer = {
-            id: player.id,
-            name: name,
-            title: title,
-            race: race,
-            profession: profession,
-            banned: banned,
-        };
-
-        $.ajax({
-            url: "/rest/players/" + player.id,
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(updatedPlayer),
-            success: () => {
-                showList();
-            }
-        });
-    });
     td.append(imgSave);
 }
 
-function showEditFields(player, row) {
-    const nameTd = row.find('td.name');
-    const titleTd = row.find('td.title');
-    const raceTd = row.find('td.race');
-    const professionTd = row.find('td.profession');
-    const bannedTd = row.find('td.banned');
+function addActionSaveOnRow(imgSave, row, player) {
+    imgSave.on('click', () => {
+        const updatedPlayer = getUpdatedPlayer(row, player.id);
+        sendUpdateQuery(player.id, updatedPlayer);
+    });
+}
 
-    nameTd.html(`<input type='text' value='${player.name}'>`);
-    titleTd.html(`<input type='text' value='${player.title}'>`);
-    raceTd.html(`
+function sendUpdateQuery(idOldPlayer, updatedPlayer) {
+    $.ajax({
+        url: "/rest/players/" + idOldPlayer,
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(updatedPlayer),
+        success: () => {
+            showList();
+        }
+    });
+}
+
+function getUpdatedPlayer(row, idOldPlayer) {
+    const name = row.find('td.name input').val();
+    const title = row.find('td.title input').val();
+    const race = row.find('td.race select').val();
+    const profession = row.find('td.profession select').val();
+    const banned = row.find('td.banned select').val();
+
+    return {
+        id: idOldPlayer,
+        name: name,
+        title: title,
+        race: race,
+        profession: profession,
+        banned: banned,
+    };
+}
+
+function showEditFields(player, row) {
+
+    const editFields = getEditFields(row);
+
+    addHtml(editFields, player);
+}
+
+function addHtml(editFields, player) {
+    editFields.nameTd.html(`<input type='text' value='${player.name}'>`);
+    editFields.titleTd.html(`<input type='text' value='${player.title}'>`);
+    editFields.raceTd.html(`
         <select>
             <option value="HUMAN" ${player.race === 'HUMAN' ? 'selected' : ''}>HUMAN</option>
             <option value="ORC" ${player.race === 'ORC' ? 'selected' : ''}>ORC</option>
@@ -146,7 +193,7 @@ function showEditFields(player, row) {
             <option value="TROLL" ${player.race === 'TROLL' ? 'selected' : ''}>TROLL</option>
             <option value="HOBBIT" ${player.race === 'HOBBIT' ? 'selected' : ''}>HOBBIT</option>
         </select>`);
-    professionTd.html(`
+    editFields.professionTd.html(`
         <select>
             <option value="WARRIOR" ${player.profession === 'WARRIOR' ? 'selected' : ''}>WARRIOR</option>
             <option value="ROGUE" ${player.profession === 'ROGUE' ? 'selected' : ''}>ROGUE</option>
@@ -156,14 +203,24 @@ function showEditFields(player, row) {
             <option value="NAZGUL" ${player.profession === 'NAZGUL' ? 'selected' : ''}>NAZGUL</option>
             <option value="WARLOCK" ${player.profession === 'WARLOCK' ? 'selected' : ''}>WARLOCK</option>
         </select>`);
-    bannedTd.html(`
+    editFields.bannedTd.html(`
       <select>
         <option value="true" ${player.banned === 'true' ? 'selected' : ''}>true</option>
         <option value="false" ${player.banned === 'false' ? 'selected' : ''}>false</option>
      </select>`);
 }
 
-function createPlayer() {
+function getEditFields(row) {
+    return {
+        nameTd: row.find('td.name'),
+        titleTd: row.find('td.title'),
+        raceTd: row.find('td.race'),
+        professionTd: row.find('td.profession'),
+        bannedTd: row.find('td.banned'),
+    }
+}
+
+function getNewPlayer() {
     const name = $("#name").val();
     const title = $("#title").val();
     const race = $("#race").val();
@@ -172,7 +229,7 @@ function createPlayer() {
     const birthday = $("#birthday").val();
     const banned = $("#banned").val();
 
-    const createdPlayer = {
+    return {
         name: name,
         title: title,
         race: race,
@@ -181,30 +238,39 @@ function createPlayer() {
         banned: banned,
         level: level
     };
+}
+
+function createPlayer() {
+
+    const createdPlayer = getNewPlayer();
 
     if (isGoodPlayer(createdPlayer)) {
         createdPlayer.birthday = Date.parse(createdPlayer.birthday)
-        $.ajax({
-            url: "/rest/players",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(createdPlayer),
-            async: false,
-            success: () => {
-                clearAllFields();
-                showList();
-                setTimeout(function() {
-                    $("#paging button").last().click();
-                }, 30);
-            },
-            error: (error) => {
-                alert("Server responded with a status of " + error.status)
-            }
-        });
+        sendCreateQuery(createdPlayer);
     }
 }
 
-function clearAllFields()  {
+function sendCreateQuery(createdPlayer) {
+    $.ajax({
+        url: "/rest/players",
+        method: "POST",
+        contentType: "application/json",
+        data: JSON.stringify(createdPlayer),
+        async: false,
+        success: () => {
+            clearAllFields();
+            showList();
+            setTimeout(function () {
+                $("#paging button").last().click();
+            }, 30);
+        },
+        error: (error) => {
+            alert("Server responded with a status of " + error.status)
+        }
+    });
+}
+
+function clearAllFields() {
     $("#name").val('');
     $("#title").val('');
     $("#race").val('HUMAN');
