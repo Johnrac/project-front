@@ -205,8 +205,8 @@ function addHtml(editFields, player) {
         </select>`);
     editFields.bannedTd.html(`
       <select>
-        <option value="true" ${player.banned === 'true' ? 'selected' : ''}>true</option>
-        <option value="false" ${player.banned === 'false' ? 'selected' : ''}>false</option>
+        <option value="true" ${player.banned === true ? 'selected' : ''}>true</option>
+        <option value="false" ${player.banned === false ? 'selected' : ''}>false</option>
      </select>`);
 }
 
